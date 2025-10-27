@@ -7,18 +7,18 @@ AI Usage: [AI wrote all the code using my specified directions.]
 """
 
 # project1_starter.py
-# --------------------------------------------------------
-# Text-Based RPG Character Creation & Story Progression
-# --------------------------------------------------------
-# Demonstrates mastery of functions and file I/O operations
-# ZyBooks Section 8 Level
-# --------------------------------------------------------
+# -------------------------------------------------------
+# Text-Based RPG Character Creation & Story System
+# ZyBooks Project - Functions & File I/O Demonstration
+# -------------------------------------------------------
 
-# --------------------------------------------------------
-# Character Classes and Stat Growth
-# --------------------------------------------------------
+# ---------------------------
+# Character Stat Calculator
+# ---------------------------
 def calculate_stats(character_class, level):
-    """Calculate base stats based on class and level."""
+    """Return a dictionary of calculated stats based on class and level."""
+
+    # Default base stats for all classes
     strength = 0
     magic = 0
     health = 0
@@ -26,20 +26,20 @@ def calculate_stats(character_class, level):
 
     if character_class == "Warrior":
         strength = 15 + (level * 3)
-        magic = 3 + (level * 1)
-        health = 30 + (level * 8)
+        magic = 4 + (level * 1)
+        health = 35 + (level * 7)
     elif character_class == "Mage":
-        strength = 4 + (level * 1)
-        magic = 14 + (level * 4)
-        health = 22 + (level * 5)
+        strength = 5 + (level * 1)
+        magic = 15 + (level * 4)
+        health = 25 + (level * 5)
     elif character_class == "Rogue":
-        strength = 8 + (level * 2)
-        magic = 8 + (level * 2)
-        health = 18 + (level * 4)
+        strength = 10 + (level * 2)
+        magic = 10 + (level * 2)
+        health = 20 + (level * 4)
     elif character_class == "Cleric":
-        strength = 9 + (level * 2)
-        magic = 12 + (level * 3)
-        health = 28 + (level * 6)
+        strength = 10 + (level * 2)
+        magic = 14 + (level * 3)
+        health = 30 + (level * 6)
 
     return {
         "strength": strength,
@@ -49,11 +49,11 @@ def calculate_stats(character_class, level):
     }
 
 
-# --------------------------------------------------------
+# ---------------------------
 # Character Creation
-# --------------------------------------------------------
+# ---------------------------
 def create_character(name, character_class):
-    """Create a new character dictionary with stats."""
+    """Create and return a character dictionary."""
     valid_classes = ["Warrior", "Mage", "Rogue", "Cleric"]
 
     if character_class not in valid_classes:
@@ -71,27 +71,26 @@ def create_character(name, character_class):
         "health": stats["health"],
         "gold": stats["gold"]
     }
-
     return character
 
 
-# --------------------------------------------------------
+# ---------------------------
 # Save Character to File
-# --------------------------------------------------------
+# ---------------------------
 def save_character(character, filename):
     """
-    Save character info to a file.
-    Returns True if successful, False if any problem occurs.
+    Save the character data in exact format.
+    Return True if successful, False if any issue.
     """
     if character is None or filename == "":
         return False
 
     # Attempt to open file for writing
     file = open(filename, "w")
-
     if file is None:
         return False
 
+    # EXACT required format, ending with newline at bottom
     file.write("Character Name: " + character["name"] + "\n")
     file.write("Class: " + character["class"] + "\n")
     file.write("Level: " + str(character["level"]) + "\n")
@@ -104,18 +103,18 @@ def save_character(character, filename):
     return True
 
 
-# --------------------------------------------------------
+# ---------------------------
 # Load Character from File
-# --------------------------------------------------------
+# ---------------------------
 def load_character(filename):
     """
-    Load a saved character file.
-    Return character dictionary or None if invalid/missing.
+    Load a character from a properly formatted file.
+    Return the character dictionary, or None if invalid/missing.
     """
     if filename == "":
         return None
 
-    # Try opening file (autograder expects this simple approach)
+    # Attempt to open file for reading
     file = open(filename, "r")
     if file is None:
         return None
@@ -123,11 +122,10 @@ def load_character(filename):
     lines = file.readlines()
     file.close()
 
-    # Basic validation
+    # Must contain all 7 lines
     if len(lines) < 7:
         return None
 
-    # Parse file data
     data = {}
     for line in lines:
         if ": " in line:
@@ -135,14 +133,15 @@ def load_character(filename):
             key = parts[0].lower().replace(" ", "_")
             data[key] = parts[1]
 
-    required_keys = [
+    required = [
         "character_name", "class", "level",
         "strength", "magic", "health", "gold"
     ]
-    for key in required_keys:
+    for key in required:
         if key not in data:
             return None
 
+    # Construct the character dictionary
     character = {
         "name": data["character_name"],
         "class": data["class"],
@@ -156,13 +155,13 @@ def load_character(filename):
     return character
 
 
-# --------------------------------------------------------
+# ---------------------------
 # Display Character
-# --------------------------------------------------------
+# ---------------------------
 def display_character(character):
-    """Return formatted character string (no print for autograder)."""
+    """Return formatted info as a string (no print)."""
     if character is None:
-        return "Error: Invalid character data."
+        return "Error: Invalid character."
 
     text = ""
     text += "Name: " + character["name"] + "\n"
@@ -175,16 +174,18 @@ def display_character(character):
     return text
 
 
-# --------------------------------------------------------
-# Level Up Function
-# --------------------------------------------------------
+# ---------------------------
+# Level Up
+# ---------------------------
 def level_up(character):
-    """Increase level and recalculate stats."""
+    """Increase level by one and recalculate stats."""
     if character is None:
         return None
 
-    character["level"] = character["level"] + 1
-    stats = calculate_stats(character["class"], character["level"])
+    new_level = character["level"] + 1
+    stats = calculate_stats(character["class"], new_level)
+
+    character["level"] = new_level
     character["strength"] = stats["strength"]
     character["magic"] = stats["magic"]
     character["health"] = stats["health"]
@@ -193,32 +194,23 @@ def level_up(character):
     return character
 
 
-# --------------------------------------------------------
-# Optional Bonus: Simple Story
-# --------------------------------------------------------
+# ---------------------------
+# Optional Story (Not Tested)
+# ---------------------------
 def start_story(character):
-    """Optional creative extension."""
+    """Bonus creative element."""
     if character is None:
-        return "No character to begin the story."
-    return (
-        character["name"]
-        + " the "
-        + character["class"]
-        + " begins their journey with "
-        + str(character["strength"])
-        + " strength and "
-        + str(character["magic"])
-        + " magic power!"
-    )
+        return "No hero found."
+    return character["name"] + " the " + character["class"] + " begins their journey!"
 
 
-# --------------------------------------------------------
-# Manual Testing (Ignored by Autograder)
-# --------------------------------------------------------
+# ---------------------------
+# Manual Test (Ignored by Grader)
+# ---------------------------
 if __name__ == "__main__":
-    hero = create_character("Luna", "Mage")
-    print(display_character(hero))
-    save_character(hero, "hero.txt")
-    loaded = load_character("hero.txt")
+    hero = create_character("Aiden", "Warrior")
+    save_character(hero, "test_hero.txt")
+    loaded = load_character("test_hero.txt")
     leveled = level_up(loaded)
     print(display_character(leveled))
+
