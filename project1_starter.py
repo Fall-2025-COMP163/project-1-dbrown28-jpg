@@ -9,31 +9,12 @@ AI Usage: [AI wrote all the code using my specified directions.]
 # project1_starter.py
 
 # ----------------------------
-# Character creation functions
+# Character Creation Functions
 # ----------------------------
 
-def create_character(name, character_class):
-    """Create a new character dictionary with initial stats and level 1."""
-    valid_classes = ["Warrior", "Mage", "Rogue", "Cleric"]
-    if character_class not in valid_classes:
-        return None  # Invalid class
-
-    level = 1
-    strength, magic, health, gold = calculate_stats(character_class, level)
-    character = {
-        "name": name,
-        "class": character_class,
-        "level": level,
-        "strength": strength,
-        "magic": magic,
-        "health": health,
-        "gold": gold
-    }
-    return character
-
-
 def calculate_stats(character_class, level):
-    """Calculate stats based on character class and level. Returns a tuple."""
+    """Calculate stats based on character class and level.
+    Returns a tuple of (strength, magic, health)."""
     if character_class == "Warrior":
         strength = 15 + (level * 3)
         magic = 4 + (level * 1)
@@ -51,123 +32,136 @@ def calculate_stats(character_class, level):
         magic = 14 + (level * 3)
         health = 30 + (level * 6)
     else:
-        return (0, 0, 0, 0)
+        return (0, 0, 0)
 
-    gold = 100 + (level * 10)
-    return (strength, magic, health, gold)
+    return (strength, magic, health)
+
+
+def create_character(name, character_class):
+    """Create a new character dictionary."""
+    valid_classes = ["Warrior", "Mage", "Rogue", "Cleric"]
+    if character_class not in valid_classes:
+        return None
+
+    level = 1
+    strength, magic, health = calculate_stats(character_class, level)
+    gold = 100 + (level * 10)  # starting gold
+
+    character = {
+        "name": name,
+        "class": character_class,
+        "level": level,
+        "strength": strength,
+        "magic": magic,
+        "health": health,
+        "gold": gold
+    }
+    return character
 
 
 # ----------------------------
-# File I/O functions
+# File I/O Functions
 # ----------------------------
 
 def save_character(character, filename):
-    """Save character to a file in the required format."""
+    """Save character to file in the required format.
+    Returns True if saved, False if directory or permission issues."""
     if character is None or filename == "":
         return False
-    file = None
-    try:
-        file = open(filename, "w")
-    except:
-        return False  # Handles bad directory or permission errors
 
-    file.write("Character Name: " + character["name"] + "\n")
-    file.write("Class: " + character["class"] + "\n")
-    file.write("Level: " + str(character["level"]) + "\n")
-    file.write("Strength: " + str(character["strength"]) + "\n")
-    file.write("Magic: " + str(character["magic"]) + "\n")
-    file.write("Health: " + str(character["health"]) + "\n")
-    file.write("Gold: " + str(character["gold"]) + "\n")
-    file.close()
-    return True
+    # Build file contents
+    content = (
+        f"Character Name: {character['name']}\n"
+        f"Class: {character['class']}\n"
+        f"Level: {character['level']}\n"
+        f"Strength: {character['strength']}\n"
+        f"Magic: {character['magic']}\n"
+        f"Health: {character['health']}\n"
+        f"Gold: {character['gold']}\n"
+    )
+
+    # Check if we can open file for writing
+    try:
+        f = open(filename, 'w')
+        f.write(content)
+        f.close()
+        return True
+    except (FileNotFoundError, PermissionError):
+        return False
 
 
 def load_character(filename):
-    """Load character from a file. Return character dictionary or None if file missing."""
-    if filename == "":
-        return None
-    file = None
+    """Load a character from a file. Returns the character dictionary or None if error."""
     try:
-        file = open(filename, "r")
-    except:
-        return None  # File not found or bad directory
+        f = open(filename, 'r')
+    except FileNotFoundError:
+        return None
+    except PermissionError:
+        return None
 
-    lines = file.readlines()
-    file.close()
+    lines = f.readlines()
+    f.close()
+
     if len(lines) < 7:
         return None
 
-    data = {}
+    # Parse the character
+    character = {}
     for line in lines:
-        if ": " in line:
-            key, value = line.strip().split(": ", 1)
-            data[key.lower().replace(" ", "_")] = value
+        key_value = line.strip().split(": ", 1)
+        if len(key_value) != 2:
+            continue
+        key, value = key_value
+        if key == "Character Name":
+            character["name"] = value
+        elif key == "Class":
+            character["class"] = value
+        elif key == "Level":
+            character["level"] = int(value)
+        elif key == "Strength":
+            character["strength"] = int(value)
+        elif key == "Magic":
+            character["magic"] = int(value)
+        elif key == "Health":
+            character["health"] = int(value)
+        elif key == "Gold":
+            character["gold"] = int(value)
 
-    try:
-        character = {
-            "name": data["character_name"],
-            "class": data["class"],
-            "level": int(data["level"]),
-            "strength": int(data["strength"]),
-            "magic": int(data["magic"]),
-            "health": int(data["health"]),
-            "gold": int(data["gold"])
-        }
-    except:
+    # Validate class
+    if character.get("class") not in ["Warrior", "Mage", "Rogue", "Cleric"]:
         return None
 
     return character
 
 
 # ----------------------------
-# Display and progression
+# Character Display and Leveling
 # ----------------------------
 
 def display_character(character):
-    """Display character info. Returns None."""
+    """Print character info in readable format. Returns None."""
     if character is None:
-        print("Error: Invalid character.")
         return None
-    print("Name:", character["name"])
-    print("Class:", character["class"])
-    print("Level:", character["level"])
-    print("Strength:", character["strength"])
-    print("Magic:", character["magic"])
-    print("Health:", character["health"])
-    print("Gold:", character["gold"])
+
+    print(f"Name: {character['name']}")
+    print(f"Class: {character['class']}")
+    print(f"Level: {character['level']}")
+    print(f"Strength: {character['strength']}")
+    print(f"Magic: {character['magic']}")
+    print(f"Health: {character['health']}")
+    print(f"Gold: {character['gold']}")
     return None
 
 
 def level_up(character):
-    """Increase character level by 1 and update stats."""
+    """Increase character level by 1 and recalculate stats."""
     if character is None:
         return None
+
     character["level"] += 1
-    strength, magic, health, gold = calculate_stats(character["class"], character["level"])
+    strength, magic, health = calculate_stats(character["class"], character["level"])
     character["strength"] = strength
     character["magic"] = magic
     character["health"] = health
-    character["gold"] = gold
+    character["gold"] = 100 + (character["level"] * 10)
     return character
-
-
-# ---------------------------
-# Optional Story (Not Tested)
-# ---------------------------
-def start_story(character):
-    """Bonus creative element."""
-    if character is None:
-        return "No hero found."
-    return character["name"] + " the " + character["class"] + " begins their journey!"
-
-
-# ---------------------------
-# Manual Test (Ignored by Grader)
-# ---------------------------
-if __name__ == "__main__":
-    hero = create_character("Aiden", "Warrior")
-    save_character(hero, "test_hero.txt")
-    loaded = load_character("test_hero.txt")
-    leveled = level_up(loaded)
-    print(display_character(leveled))
-
