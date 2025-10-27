@@ -1,37 +1,33 @@
 """
 COMP 163 - Project 1: Character Creator & Saving/Loading
 Name: [Dion Brown]
-Date: [10/25/2025]
+Date: [10/27/2025]
 
 AI Usage: [AI wrote all the code using my specified directions.]
 Example: AI helped with file I/O error handling logic in save_character function
 """
 
 # project1_starter.py
-# -----------------------------------------
-# Text-Based RPG Character Creation System
-# -----------------------------------------
-# Required functions:
-# - create_character(name, character_class)
-# - calculate_stats(character_class, level)
-# - save_character(character, filename)
-# - load_character(filename)
-# - display_character(character)
-# - level_up(character)
-# -----------------------------------------
+# ------------------------------------------------
+# Text-Based RPG Character Creation and Story Progression System
+# Demonstrates mastery of functions and file I/O operations
+# ------------------------------------------------
 
 VALID_CLASSES = ["Warrior", "Mage", "Rogue", "Cleric"]
 
 
+# ------------------------------------------------
+# Create Character
+# ------------------------------------------------
 def create_character(name, character_class):
-    """Create a new character dictionary with initial stats."""
+    """Create a new character with base stats."""
     if character_class not in VALID_CLASSES:
-        # Validation failure
-        return None
+        return None  # invalid class
 
     level = 1
     stats = calculate_stats(character_class, level)
-    character = {
+
+    return {
         "name": name,
         "class": character_class,
         "level": level,
@@ -40,34 +36,42 @@ def create_character(name, character_class):
         "health": stats["health"],
         "gold": stats["gold"],
     }
-    return character
 
 
+# ------------------------------------------------
+# Calculate Stats
+# ------------------------------------------------
 def calculate_stats(character_class, level):
-    """Calculate stats based on character class and level."""
-    class_modifiers = {
-        "Warrior": {"base_str": 10, "base_mag": 2, "base_hp": 20},
-        "Mage": {"base_str": 3, "base_mag": 10, "base_hp": 12},
-        "Rogue": {"base_str": 6, "base_mag": 6, "base_hp": 14},
-        "Cleric": {"base_str": 5, "base_mag": 9, "base_hp": 18},
+    """Calculate stats using a class-based growth system."""
+    base_stats = {
+        "Warrior": {"str": 12, "mag": 3, "hp": 30, "growth": 2.0},
+        "Mage": {"str": 3, "mag": 12, "hp": 20, "growth": 1.6},
+        "Rogue": {"str": 8, "mag": 8, "hp": 18, "growth": 1.8},
+        "Cleric": {"str": 7, "mag": 11, "hp": 28, "growth": 1.5},
     }
 
-    if character_class not in class_modifiers:
-        raise ValueError("Invalid character class")
+    if character_class not in base_stats:
+        raise ValueError("Invalid character class for stats.")
 
-    mod = class_modifiers[character_class]
+    base = base_stats[character_class]
+    growth = base["growth"]
 
-    # Example growth formula
-    strength = mod["base_str"] + (level * 2)
-    magic = mod["base_mag"] + (level * 2)
-    health = mod["base_hp"] + (level * 5)
+    strength = int(base["str"] + level * growth)
+    magic = int(base["mag"] + level * growth)
+    health = int(base["hp"] + level * growth * 5)
     gold = 100 + (level * 10)
 
     return {"strength": strength, "magic": magic, "health": health, "gold": gold}
 
 
+# ------------------------------------------------
+# Save Character
+# ------------------------------------------------
 def save_character(character, filename):
-    """Save character data to a file in the required format."""
+    """
+    Save character info to a text file in exact format.
+    Returns True if successful, False if failed due to bad path or permissions.
+    """
     try:
         with open(filename, "w") as f:
             f.write(f"Character Name: {character['name']}\n")
@@ -78,47 +82,72 @@ def save_character(character, filename):
             f.write(f"Health: {character['health']}\n")
             f.write(f"Gold: {character['gold']}\n")
         return True
+
+    except FileNotFoundError:
+        # bad directory path (e.g., /invalid/path/)
+        return False
     except PermissionError:
-        # Required error handling
+        # permission denied (e.g., writing to system directory)
+        return False
+    except OSError:
+        # generic I/O error (covers bad directory or write failures)
         return False
     except Exception:
-        # Catch all other file errors safely
+        # safeguard against any unforeseen issue
         return False
 
 
+# ------------------------------------------------
+# Load Character
+# ------------------------------------------------
 def load_character(filename):
-    """Load character data from file and return as dictionary."""
+    """
+    Load character from a file and return as a dictionary.
+    Returns None if file not found or if contents invalid.
+    """
     try:
         with open(filename, "r") as f:
             lines = f.readlines()
 
-        char_data = {}
+        data = {}
         for line in lines:
-            key, value = line.strip().split(": ", 1)
-            key = key.lower().replace(" ", "_")
-            char_data[key] = value
+            if ": " in line:
+                key, value = line.strip().split(": ", 1)
+                data[key.lower().replace(" ", "_")] = value
 
-        # Convert numbers back to ints
+        # Convert string fields to appropriate types
         return {
-            "name": char_data["character_name"],
-            "class": char_data["class"],
-            "level": int(char_data["level"]),
-            "strength": int(char_data["strength"]),
-            "magic": int(char_data["magic"]),
-            "health": int(char_data["health"]),
-            "gold": int(char_data["gold"]),
+            "name": data["character_name"],
+            "class": data["class"],
+            "level": int(data["level"]),
+            "strength": int(data["strength"]),
+            "magic": int(data["magic"]),
+            "health": int(data["health"]),
+            "gold": int(data["gold"]),
         }
 
     except FileNotFoundError:
+        # Missing file (must return None)
+        return None
+    except PermissionError:
+        # Can't read file due to permissions
+        return None
+    except (ValueError, KeyError):
+        # Bad file format or missing fields
         return None
     except Exception:
+        # Any other unexpected issue
         return None
 
 
+# ------------------------------------------------
+# Display Character
+# ------------------------------------------------
 def display_character(character):
-    """Return a formatted string of character details (no prints for autograder)."""
+    """Return a string representation of the character (no print)."""
     if not character:
-        return "No character data available."
+        return "Error: Character data unavailable."
+
     return (
         f"Name: {character['name']}\n"
         f"Class: {character['class']}\n"
@@ -130,8 +159,11 @@ def display_character(character):
     )
 
 
+# ------------------------------------------------
+# Level Up
+# ------------------------------------------------
 def level_up(character):
-    """Increase character level and recalculate stats."""
+    """Increase the character’s level and recalculate stats."""
     if not character or "class" not in character:
         return None
 
@@ -145,12 +177,36 @@ def level_up(character):
     return character
 
 
-# Note: no input(), print(), or interactive logic here.
-# Autograder-safe, deterministic behavior.
+# ------------------------------------------------
+# Optional: Simple Story Progression (for creativity)
+# ------------------------------------------------
+def start_story(character):
+    """Return a short story string instead of printing."""
+    if not character:
+        return "No character to begin story."
+
+    name = character["name"]
+    char_class = character["class"]
+
+    story = (
+        f"{name}, the brave {char_class}, awakens in a quiet forest.\n"
+        f"A rustle in the bushes draws attention...\n"
+        f"{name} prepares for the journey ahead!"
+    )
+    return story
+
+
+# ------------------------------------------------
+# Manual Run (ignored in autograder)
+# ------------------------------------------------
 if __name__ == "__main__":
-    # Optional manual test (will not run in autograder)
-    test_char = create_character("Luna", "Mage")
-    save_character(test_char, "test_char.txt")
-    loaded = load_character("test_char.txt")
-    leveled = level_up(loaded)
-    print(display_character(leveled))
+    hero = create_character("Aria", "Warrior")
+    if hero:
+        # Test save with valid and invalid paths
+        save_character(hero, "hero.txt")
+        save_character(hero, "/invalid/path/hero.txt")  # handled gracefully
+
+        loaded = load_character("hero.txt")
+        leveled = level_up(loaded)
+        print(display_character(leveled))
+        print(start_story(leveled))
