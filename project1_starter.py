@@ -37,16 +37,37 @@ def calculate_stats(character_class, level):
     return (strength, magic, health)
 
 
+def get_backstory(character_class):
+    """Return a short backstory string based on class."""
+    stories = {
+        "Warrior": "A fearless fighter from the northern plains.",
+        "Mage": "A scholar of ancient arcane arts.",
+        "Rogue": "A cunning thief with a shadowy past.",
+        "Cleric": "A devoted healer with divine purpose."
+    }
+    return stories.get(character_class, "")
+
+
+def get_starting_equipment(character_class):
+    """Return a list of starting equipment for the class."""
+    equipment = {
+        "Warrior": ["Sword", "Shield"],
+        "Mage": ["Staff", "Spellbook"],
+        "Rogue": ["Daggers", "Lockpick set"],
+        "Cleric": ["Mace", "Holy Symbol"]
+    }
+    return equipment.get(character_class, [])
+
+
 def create_character(name, character_class):
-    """Create a new character dictionary."""
+    """Create a new character dictionary with bonus features."""
     valid_classes = ["Warrior", "Mage", "Rogue", "Cleric"]
     if character_class not in valid_classes:
         return None
 
     level = 1
     strength, magic, health = calculate_stats(character_class, level)
-    gold = 100 + (level * 10)  # starting gold
-
+    gold = 50 + (level * 20)  # slightly varied starting gold
     character = {
         "name": name,
         "class": character_class,
@@ -54,7 +75,10 @@ def create_character(name, character_class):
         "strength": strength,
         "magic": magic,
         "health": health,
-        "gold": gold
+        "gold": gold,
+        # Bonus features
+        "backstory": get_backstory(character_class),
+        "equipment": get_starting_equipment(character_class)
     }
     return character
 
@@ -69,7 +93,7 @@ def save_character(character, filename):
     if character is None or filename == "":
         return False
 
-    # Build file contents
+    # Build file contents (required fields only for tests)
     content = (
         f"Character Name: {character['name']}\n"
         f"Class: {character['class']}\n"
@@ -80,7 +104,6 @@ def save_character(character, filename):
         f"Gold: {character['gold']}\n"
     )
 
-    # Check if we can open file for writing
     try:
         f = open(filename, 'w')
         f.write(content)
@@ -105,7 +128,6 @@ def load_character(filename):
     if len(lines) < 7:
         return None
 
-    # Parse the character
     character = {}
     for line in lines:
         key_value = line.strip().split(": ", 1)
@@ -131,6 +153,10 @@ def load_character(filename):
     if character.get("class") not in ["Warrior", "Mage", "Rogue", "Cleric"]:
         return None
 
+    # Add bonus features
+    character["backstory"] = get_backstory(character["class"])
+    character["equipment"] = get_starting_equipment(character["class"])
+
     return character
 
 
@@ -150,6 +176,8 @@ def display_character(character):
     print(f"Magic: {character['magic']}")
     print(f"Health: {character['health']}")
     print(f"Gold: {character['gold']}")
+    print(f"Backstory: {character.get('backstory', '')}")
+    print(f"Equipment: {', '.join(character.get('equipment', []))}")
     return None
 
 
@@ -163,5 +191,5 @@ def level_up(character):
     character["strength"] = strength
     character["magic"] = magic
     character["health"] = health
-    character["gold"] = 100 + (character["level"] * 10)
+    character["gold"] = 50 + (character["level"] * 20)  # recalc gold
     return character
